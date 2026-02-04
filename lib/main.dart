@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'constants/app_colors.dart';
 import 'constants/app_theme.dart';
 import 'providers/expense_provider.dart';
+import 'viewmodels/main_viewmodel.dart';
 import 'screens/home_screen.dart';
 import 'screens/calendar_screen.dart';
 import 'screens/list_screen.dart';
@@ -33,17 +34,22 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MainScreen extends StatefulWidget {
+class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => MainViewModel(),
+      child: const _MainScreenContent(),
+    );
+  }
 }
 
-class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
+class _MainScreenContent extends StatelessWidget {
+  const _MainScreenContent();
 
-  final List<Widget> _screens = const [
+  static const List<Widget> _screens = [
     HomeScreen(),
     CalendarScreen(),
     ListScreen(),
@@ -51,6 +57,8 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<MainViewModel>();
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -75,7 +83,7 @@ class _MainScreenState extends State<MainScreen> {
             margin: const EdgeInsets.only(right: 16),
             child: TextButton.icon(
               onPressed: () {
-                // TODO: 등록 화면으로 이동
+                viewModel.navigateToAddExpense();
               },
               icon: const Icon(Icons.add, size: 18),
               label: const Text('등록'),
@@ -91,64 +99,82 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ],
       ),
-      body: _screens[_currentIndex],
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadow,
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildNavItem(
-                  index: 0,
-                  icon: Icons.home_outlined,
-                  selectedIcon: Icons.home,
-                  label: '홈',
-                ),
-                _buildNavItem(
-                  index: 1,
-                  icon: Icons.calendar_today_outlined,
-                  selectedIcon: Icons.calendar_today,
-                  label: '달력',
-                ),
-                _buildNavItem(
-                  index: 2,
-                  icon: Icons.format_list_bulleted,
-                  selectedIcon: Icons.format_list_bulleted,
-                  label: '리스트',
-                ),
-              ],
-            ),
+      body: _screens[viewModel.currentIndex],
+      bottomNavigationBar: _buildBottomNavigationBar(context, viewModel),
+    );
+  }
+
+  Widget _buildBottomNavigationBar(BuildContext context, MainViewModel viewModel) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow,
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _NavItem(
+                index: 0,
+                icon: Icons.home_outlined,
+                selectedIcon: Icons.home,
+                label: '홈',
+                isSelected: viewModel.currentIndex == 0,
+                onTap: () => viewModel.setCurrentIndex(0),
+              ),
+              _NavItem(
+                index: 1,
+                icon: Icons.calendar_today_outlined,
+                selectedIcon: Icons.calendar_today,
+                label: '달력',
+                isSelected: viewModel.currentIndex == 1,
+                onTap: () => viewModel.setCurrentIndex(1),
+              ),
+              _NavItem(
+                index: 2,
+                icon: Icons.format_list_bulleted,
+                selectedIcon: Icons.format_list_bulleted,
+                label: '리스트',
+                isSelected: viewModel.currentIndex == 2,
+                onTap: () => viewModel.setCurrentIndex(2),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildNavItem({
-    required int index,
-    required IconData icon,
-    required IconData selectedIcon,
-    required String label,
-  }) {
-    final isSelected = _currentIndex == index;
+class _NavItem extends StatelessWidget {
+  final int index;
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
 
+  const _NavItem({
+    required this.index,
+    required this.icon,
+    required this.selectedIcon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _currentIndex = index;
-        });
-      },
+      onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),

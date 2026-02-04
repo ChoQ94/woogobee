@@ -94,7 +94,7 @@ class ExpenseListItem extends StatelessWidget {
                 if (showDaysUntil) ...[
                   const SizedBox(height: 4),
                   Text(
-                    daysUntil == 0 ? '오늘' : '${daysUntil}일 후',
+                    daysUntil == 0 ? '오늘' : '$daysUntil일 후',
                     style: TextStyle(
                       fontSize: 13,
                       color: daysUntil <= 3

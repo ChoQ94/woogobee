@@ -100,7 +100,6 @@ class FixedExpense {
 
   /// 다음 결제일 계산
   DateTime getNextPaymentDate(DateTime from) {
-    final currentMonth = DateTime(from.year, from.month, 1);
     final paymentDateThisMonth = DateTime(from.year, from.month, paymentDay);
 
     if (from.day <= paymentDay) {

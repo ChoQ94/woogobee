@@ -4,101 +4,137 @@ import 'package:provider/provider.dart';
 import '../constants/app_colors.dart';
 import '../models/fixed_expense.dart';
 import '../providers/expense_provider.dart';
+import '../viewmodels/list_viewmodel.dart';
 import '../widgets/filter_toggle.dart';
 
-class ListScreen extends StatefulWidget {
+class ListScreen extends StatelessWidget {
   const ListScreen({super.key});
 
   @override
-  State<ListScreen> createState() => _ListScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => ListViewModel(
+        context.read<ExpenseProvider>(),
+      ),
+      child: const _ListScreenContent(),
+    );
+  }
 }
 
-class _ListScreenState extends State<ListScreen> {
-  ExpenseCategory? _selectedCategory;
-  String _sortBy = 'date'; // 'date', 'amount', 'name'
-  final Map<ExpenseCategory, bool> _expandedCategories = {};
+class _ListScreenContent extends StatelessWidget {
+  const _ListScreenContent();
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ExpenseProvider>(
-      builder: (context, provider, child) {
-        final expensesByCategory = provider.expensesByCategory;
-        final totalByCategory = provider.totalByCategory;
-        final numberFormat = NumberFormat('#,###');
+    final viewModel = context.watch<ListViewModel>();
+    final numberFormat = NumberFormat('#,###');
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 개인/공유 토글
-              FilterToggle(
-                isSharedSelected: provider.showSharedOnly,
-                onChanged: provider.toggleSharedFilter,
-              ),
-              const SizedBox(height: 20),
-
-              // 필터 및 정렬
-              _buildFilterRow(),
-              const SizedBox(height: 16),
-
-              // 총 항목 및 금액
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.summaryCardBackground,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '총 ${provider.filteredExpenses.length}개 항목',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    Text(
-                      '${numberFormat.format(provider.totalMonthlyExpense)}원',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // 카테고리별 그룹
-              if (expensesByCategory.isEmpty)
-                _buildEmptyState()
-              else
-                ...expensesByCategory.entries.map((entry) {
-                  final category = entry.key;
-                  final expenses = entry.value;
-                  final total = totalByCategory[category] ?? 0;
-                  final isExpanded = _expandedCategories[category] ?? true;
-
-                  return _buildCategoryGroup(
-                    category: category,
-                    expenses: expenses,
-                    total: total,
-                    isExpanded: isExpanded,
-                    numberFormat: numberFormat,
-                  );
-                }),
-            ],
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 개인/공유 토글
+          FilterToggle(
+            isSharedSelected: viewModel.showSharedOnly,
+            onChanged: viewModel.toggleSharedFilter,
           ),
-        );
-      },
+          const SizedBox(height: 20),
+
+          // 필터 및 정렬
+          _FilterRow(viewModel: viewModel),
+          const SizedBox(height: 16),
+
+          // 총 항목 및 금액
+          _buildSummaryBar(viewModel, numberFormat),
+          const SizedBox(height: 20),
+
+          // 카테고리별 그룹
+          if (viewModel.hasNoExpenses)
+            _buildEmptyState()
+          else
+            ...viewModel.expensesByCategory.entries.map((entry) {
+              final category = entry.key;
+              final expenses = entry.value;
+              final total = viewModel.totalByCategory[category] ?? 0;
+              final isExpanded = viewModel.isCategoryExpanded(category);
+
+              return _CategoryGroup(
+                category: category,
+                expenses: expenses,
+                total: total,
+                isExpanded: isExpanded,
+                numberFormat: numberFormat,
+                onToggle: () => viewModel.toggleCategoryExpanded(category),
+              );
+            }),
+        ],
+      ),
     );
   }
 
-  Widget _buildFilterRow() {
+  Widget _buildSummaryBar(ListViewModel viewModel, NumberFormat numberFormat) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.summaryCardBackground,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            '총 ${viewModel.filteredExpenseCount}개 항목',
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          Text(
+            '${numberFormat.format(viewModel.totalMonthlyExpense)}원',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Container(
+      padding: const EdgeInsets.all(40),
+      alignment: Alignment.center,
+      child: Column(
+        children: [
+          Icon(
+            Icons.list_alt,
+            size: 48,
+            color: AppColors.textHint,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '등록된 고정비가 없습니다',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterRow extends StatelessWidget {
+  final ListViewModel viewModel;
+
+  const _FilterRow({required this.viewModel});
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       children: [
         // 카테고리 필터
@@ -112,7 +148,7 @@ class _ListScreenState extends State<ListScreen> {
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<ExpenseCategory?>(
-                value: _selectedCategory,
+                value: viewModel.selectedCategory,
                 isExpanded: true,
                 icon: const Icon(Icons.keyboard_arrow_down,
                     color: AppColors.textSecondary),
@@ -137,9 +173,7 @@ class _ListScreenState extends State<ListScreen> {
                   }),
                 ],
                 onChanged: (value) {
-                  setState(() {
-                    _selectedCategory = value;
-                  });
+                  viewModel.setSelectedCategory(value);
                 },
               ),
             ),
@@ -157,7 +191,7 @@ class _ListScreenState extends State<ListScreen> {
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
-                value: _sortBy,
+                value: viewModel.sortByString,
                 isExpanded: true,
                 icon: const Icon(Icons.keyboard_arrow_down,
                     color: AppColors.textSecondary),
@@ -167,9 +201,9 @@ class _ListScreenState extends State<ListScreen> {
                   DropdownMenuItem(value: 'name', child: Text('이름순')),
                 ],
                 onChanged: (value) {
-                  setState(() {
-                    _sortBy = value ?? 'date';
-                  });
+                  if (value != null) {
+                    viewModel.setSortByString(value);
+                  }
                 },
               ),
             ),
@@ -178,14 +212,27 @@ class _ListScreenState extends State<ListScreen> {
       ],
     );
   }
+}
 
-  Widget _buildCategoryGroup({
-    required ExpenseCategory category,
-    required List<FixedExpense> expenses,
-    required int total,
-    required bool isExpanded,
-    required NumberFormat numberFormat,
-  }) {
+class _CategoryGroup extends StatelessWidget {
+  final ExpenseCategory category;
+  final List<FixedExpense> expenses;
+  final int total;
+  final bool isExpanded;
+  final NumberFormat numberFormat;
+  final VoidCallback onToggle;
+
+  const _CategoryGroup({
+    required this.category,
+    required this.expenses,
+    required this.total,
+    required this.isExpanded,
+    required this.numberFormat,
+    required this.onToggle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -197,11 +244,7 @@ class _ListScreenState extends State<ListScreen> {
         children: [
           // 카테고리 헤더
           InkWell(
-            onTap: () {
-              setState(() {
-                _expandedCategories[category] = !isExpanded;
-              });
-            },
+            onTap: onToggle,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -302,30 +345,6 @@ class _ListScreenState extends State<ListScreen> {
                 );
               }).toList(),
             ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Container(
-      padding: const EdgeInsets.all(40),
-      alignment: Alignment.center,
-      child: Column(
-        children: [
-          Icon(
-            Icons.list_alt,
-            size: 48,
-            color: AppColors.textHint,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            '등록된 고정비가 없습니다',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-            ),
-          ),
         ],
       ),
     );
