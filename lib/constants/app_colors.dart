@@ -5,9 +5,9 @@ class AppColors {
   AppColors._();
 
   // Primary Lilac Colors
-  static const Color primary = Color(0xFFB794F6); // 메인 라일락
-  static const Color primaryLight = Color(0xFFE9DFFF); // 연한 라일락
-  static const Color primaryDark = Color(0xFF9B6DD7); // 진한 라일락
+  static const Color primary = Color(0xFFD7ABE6);      // #d7abe6
+  static const Color primaryLight = Color(0xFFF9EDFD); // #f9edfd
+  static const Color primaryDark = Color(0xFF9878B7);  // #9878b7
 
   // Background Colors
   static const Color background = Color(0xFFFCFAFF); // 배경색
