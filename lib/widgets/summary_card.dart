@@ -20,14 +20,7 @@ class SummaryCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.summaryCardBackground,
-            AppColors.primaryLight.withValues(alpha: 0.5),
-          ],
-        ),
+        color: AppColors.summaryCardBackground,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(

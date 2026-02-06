@@ -1,3 +1,4 @@
+import '../models/fixed_expense.dart';
 import '../providers/expense_provider.dart';
 import 'base_viewmodel.dart';
 
@@ -26,6 +27,9 @@ class CalendarViewModel extends BaseViewModel {
 
   /// 특정 날짜의 총 결제 금액
   int getTotalForDay(int day) => _expenseProvider.getTotalForDay(day);
+
+  /// 특정 날짜에 결제되는 고정비 목록
+  List<FixedExpense> getExpensesForDay(int day) => _expenseProvider.getExpensesForDay(day);
 
   // === Actions ===
 

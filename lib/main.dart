@@ -8,6 +8,7 @@ import 'viewmodels/main_viewmodel.dart';
 import 'screens/home_screen.dart';
 import 'screens/calendar_screen.dart';
 import 'screens/list_screen.dart';
+import 'widgets/add_expense_dialog.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +26,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ExpenseProvider()..loadSampleData()),
       ],
       child: MaterialApp(
-        title: '고정비 관리',
+        title: '우고비',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         home: const MainScreen(),
@@ -63,13 +64,14 @@ class _MainScreenContent extends StatelessWidget {
       appBar: AppBar(
         title: Row(
           children: [
-            const Text(
-              '💰',
-              style: TextStyle(fontSize: 24),
+            Image.asset(
+              'assets/icons/app_icon.png',
+              width: 32,
+              height: 32,
             ),
             const SizedBox(width: 8),
             const Text(
-              '고정비 관리',
+              '우고비',
               style: TextStyle(
                 color: AppColors.primary,
                 fontSize: 20,
@@ -83,13 +85,16 @@ class _MainScreenContent extends StatelessWidget {
             margin: const EdgeInsets.only(right: 16),
             child: TextButton.icon(
               onPressed: () {
-                viewModel.navigateToAddExpense();
+                showDialog(
+                  context: context,
+                  builder: (context) => const AddExpenseDialog(),
+                );
               },
               icon: const Icon(Icons.add, size: 18),
               label: const Text('등록'),
               style: TextButton.styleFrom(
                 foregroundColor: AppColors.primary,
-                backgroundColor: AppColors.primaryLight,
+                backgroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),

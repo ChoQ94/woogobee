@@ -10,9 +10,9 @@ class AppColors {
   static const Color primaryDark = Color(0xFF9878B7);  // #9878b7
 
   // Background Colors
-  static const Color background = Color(0xFFFCFAFF); // 배경색
+  static const Color background = Color(0xFFF9EDFD); // 배경색
   static const Color cardBackground = Color(0xFFFFFFFF); // 카드 배경
-  static const Color summaryCardBackground = Color(0xFFF5EEFF); // 요약 카드 배경
+  static const Color summaryCardBackground = Color(0xFFFFFFFF); // 요약 카드 배경 (흰색)
 
   // Text Colors
   static const Color textPrimary = Color(0xFF2D2D2D); // 주요 텍스트
