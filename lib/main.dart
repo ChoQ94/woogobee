@@ -8,6 +8,7 @@ import 'viewmodels/main_viewmodel.dart';
 import 'screens/home_screen.dart';
 import 'screens/calendar_screen.dart';
 import 'screens/list_screen.dart';
+import 'screens/login_screen.dart';
 import 'widgets/add_expense_dialog.dart';
 
 void main() async {
@@ -29,7 +30,10 @@ class MyApp extends StatelessWidget {
         title: '우고비',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        home: const MainScreen(),
+        home: const LoginScreen(),
+        routes: {
+          LoginScreen.mainRouteName: (_) => const MainScreen(),
+        },
       ),
     );
   }
